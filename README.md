@@ -15,7 +15,7 @@ NB: Assuming that one has already Nix with Flake enabled.
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/24.05";
     flake-utils.url = "github:numtide/flake-utils";
-    otbpkgs.url = "github:daspk04/otb-nix?ref=1-package-otb";
+    otbpkgs.url = "github:daspk04/otb-nix";
   };
 
   outputs = {
@@ -89,7 +89,7 @@ Here is an example of how to create an `flake.nix` with all the above python pac
     nixpkgs.url = "github:nixos/nixpkgs/24.05";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     flake-utils.url = "github:numtide/flake-utils";
-    otbpkgs.url = "github:daspk04/otb-nix?ref=1-package-otb";
+    otbpkgs.url = "github:daspk04/otb-nix";
   };
 
   outputs = {

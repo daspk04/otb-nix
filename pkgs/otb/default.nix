@@ -104,6 +104,8 @@ in
 
     # wrap the otbcli with the environment variable
     postInstall = ''
+      buildPythonPath $out/otb/python
+
       wrapProgram $out/bin/otbcli \
           --set OTB_INSTALL_DIR "$out" \
           --set OTB_APPLICATION_PATH "$out/lib/otb/applications"

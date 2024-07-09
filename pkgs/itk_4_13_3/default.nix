@@ -36,7 +36,7 @@ in
     # https://gitlab.orfeo-toolbox.org/orfeotoolbox/otb/-/tree/develop/SuperBuild/patches/ITK?ref_type=heads
     # todo: check if all the patches are required for nix
     patches = [
-      #./itk-1-fftw-all-diff
+      ./itk-1-fftw-all.diff
       ./itk-2-itktestlib-all.diff
       ./itk-3-remove-gcc-version-debian-medteam-all.diff
     ];

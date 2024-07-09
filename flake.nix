@@ -24,7 +24,7 @@
           inherit system;
           shark = packages.shark;
           itk_4_13 = packages.itk_4_13;
-          python = python; # build otb with fixed python version
+          python3 = python; # build otb with fixed python version
         };
         packages.default = packages.otb;
         devShells.default = pkgs.mkShell rec {

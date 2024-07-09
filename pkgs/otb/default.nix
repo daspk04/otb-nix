@@ -13,7 +13,8 @@
   muparserx,
   opencv,
   perl,
-  python,
+  python3,
+  extraPythonPackages ? ps: with ps; [],
   shark,
   tinyxml,
   makeWrapper,
@@ -23,6 +24,10 @@
   ...
 }: let
   versionMeta = builtins.fromJSON (builtins.readFile ./version.json);
+
+  pythonInputs = with python3.pkgs; [
+      numpy
+    ] ++ (extraPythonPackages python3.pkgs);
 in
   stdenv.mkDerivation rec {
     pname = "otb";
@@ -39,7 +44,7 @@ in
     nativeBuildInputs = [
       cmake
       makeWrapper
-      python.pkgs.wrapPython
+      python3.pkgs.wrapPython
       swig
       which
     ];
@@ -55,11 +60,10 @@ in
       muparserx
       opencv
       perl
-      python
-      python.pkgs.numpy
+      python3
       shark
       tinyxml
-    ];
+    ] ++ pythonInputs;
 
 
     # https://www.orfeo-toolbox.org/CookBook/CompilingOTBFromSource.html#native-build-with-system-dependencies
@@ -90,14 +94,13 @@ in
       muparserx
       opencv
       perl
-      python
-      python.pkgs.numpy
+      python3
       shark
       swig
       tinyxml
-    ];
+    ] ++ pythonInputs;
 
-    pythonPath = [python.pkgs.numpy];
+    pythonPath = pythonInputs;
 
     # wrap the otbcli with the environment variable
     postInstall = ''

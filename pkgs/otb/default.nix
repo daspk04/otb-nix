@@ -76,7 +76,7 @@ stdenv.mkDerivation rec {
     shark
     tinyxml
   ] ++ optionals enablePython [
-    python
+    python3
   ] ++ optionals enablePython pythonInputs;
 
 
@@ -122,7 +122,7 @@ stdenv.mkDerivation rec {
       tinyxml
     ]
     ++ optionals enablePython [
-      python
+      python3
     ] ++ optionals enablePython pythonInputs;
 
   pythonPath = optionals enablePython pythonInputs;

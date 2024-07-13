@@ -1,120 +1,143 @@
-{
-  cmake,
-  stdenv,
-  swig,
-  which,
-  boost,
-  curl,
-  gdal,
-  itk_4_13,
-  libsvm,
-  libgeotiff,
-  muparser,
-  muparserx,
-  opencv,
-  perl,
-  python3,
-  extraPythonPackages ? ps: with ps; [],
-  shark,
-  tinyxml,
-  makeWrapper,
-  fetchgit,
-  lib,
-  pkgs,
-  ...
-}: let
+{ cmake
+, stdenv
+, swig
+, which
+, boost
+, curl
+, gdal
+, itk_4_13
+, libsvm
+, libgeotiff
+, muparser
+, muparserx
+, opencv
+, perl
+, enableFeatureExtraction ? false
+, enableHyperspectral ? false
+, enableLearning ? false
+, enableMiscellaneous ? false
+, enablePython ? false
+, python3 ? throw "otb: Python support requested, but no python interpreter was given."
+, extraPythonPackages ? ps: with ps; [ ]
+, enableRemote ? false
+, enableSAR ? false
+, enableSegmentation ? false
+, enableStereoProcessing ? false
+, enableTesting ? false
+, shark
+, tinyxml
+, makeWrapper
+, fetchgit
+, lib
+, pkgs
+, ...
+}:
+let
   versionMeta = builtins.fromJSON (builtins.readFile ./version.json);
 
-  pythonInputs = with python3.pkgs; [
+  inherit (lib) optionalString optionals optional;
+  pythonInputs = optionals enablePython
+    (with python3.pkgs;
+    [
       numpy
-    ] ++ (extraPythonPackages python3.pkgs);
+    ])
+  ++ (extraPythonPackages python3.pkgs);
 in
-  stdenv.mkDerivation rec {
-    pname = "otb";
-    version = versionMeta.version;
+stdenv.mkDerivation rec {
+  pname = "otb";
+  version = versionMeta.version;
 
-    src = builtins.fetchGit {
-      name = pname;
-      url = "https://gitlab.orfeo-toolbox.org/orfeotoolbox/otb";
-      ref = "refs/tags/${version}";
-      rev = versionMeta.rev;
-    };
+  src = builtins.fetchGit {
+    name = pname;
+    url = "https://gitlab.orfeo-toolbox.org/orfeotoolbox/otb";
+    ref = "refs/tags/${version}";
+    rev = versionMeta.rev;
+  };
 
 
-    nativeBuildInputs = [
-      cmake
-      makeWrapper
-      python3.pkgs.wrapPython
-      swig
-      which
-    ];
+  nativeBuildInputs = [
+    cmake
+    makeWrapper
+    swig
+    which
+  ];
 
-    buildInputs = [
+  buildInputs = [
+    boost
+    curl
+    gdal
+    itk_4_13
+    libsvm
+    libgeotiff
+    muparser
+    muparserx
+    opencv
+    perl
+    shark
+    tinyxml
+  ] ++ optionals enablePython [
+    python
+  ] ++ optionals enablePython pythonInputs;
+
+
+  # https://www.orfeo-toolbox.org/CookBook/CompilingOTBFromSource.html#native-build-with-system-dependencies
+  cmakeFlags = [
+  ] ++ optionals enableFeatureExtraction [
+    "-DOTB_BUILD_FeaturesExtraction=ON"
+  ] ++ optionals enableHyperspectral [
+    "-DOTB_BUILD_Hyperspectral=ON"
+  ] ++ optionals enableLearning [
+    "-DOTB_BUILD_Learning=ON"
+  ] ++ optionals enableMiscellaneous [
+    "-DOTB_BUILD_Miscellaneous=ON"
+  ] ++ optionals enableRemote [
+    "-DOTB_BUILD_RemoteModules=ON"
+  ] ++ optionals enableSAR [
+    "-DOTB_BUILD_SAR=ON"
+  ] ++ optionals enableSegmentation [
+    "-DOTB_BUILD_Segmentation=ON"
+  ] ++ optionals enableStereoProcessing [
+    "-DOTB_BUILD_StereoProcessing=ON"
+  ] ++ optionals enablePython [
+    "-DOTB_WRAP_PYTHON=ON"
+  ] ++ optionals enableTesting [
+    "-DBUILD_TESTING=ON"
+  ];
+
+  # todo: check if these contains all the required packages for another package to be build against OTB (such remote modules) ?
+  propagatedBuildInputs =
+    [
       boost
       curl
       gdal
       itk_4_13
-      libsvm
-      libgeotiff
-      muparser
-      muparserx
-      opencv
-      perl
-      python3
-      shark
-      tinyxml
-    ] ++ pythonInputs;
-
-
-    # https://www.orfeo-toolbox.org/CookBook/CompilingOTBFromSource.html#native-build-with-system-dependencies
-    # activates all modules and python by default
-    # todo: make modules as optional flag, possibly can have similar as gdal package in nix, otbminimal, otbcore ?
-    cmakeFlags = [
-      "-DOTB_WRAP_PYTHON=ON"
-      "-DOTB_BUILD_FeaturesExtraction=ON"
-      "-DOTB_BUILD_Hyperspectral=ON"
-      "-DOTB_BUILD_Learning=ON"
-      "-DOTB_BUILD_Miscellaneous=ON"
-      "-DOTB_BUILD_RemoteModules=ON"
-      "-DOTB_BUILD_SAR=ON"
-      "-DOTB_BUILD_Segmentation=ON"
-      "-DOTB_BUILD_StereoProcessing=ON"
-      "-DBUILD_TESTING=OFF"
-    ];
-
-    # todo: check if these contains all the required packages for another package to be build against OTB (such remote modules) ?
-    propagatedBuildInputs = [
-      boost
-      curl
-      gdal
-      itk_4_13
       libgeotiff
       libsvm
       muparser
       muparserx
       opencv
       perl
-      python3
       shark
       swig
       tinyxml
-    ] ++ pythonInputs;
+    ]
+    ++ optionals enablePython [
+      python
+    ] ++ optionals enablePython pythonInputs;
 
-    pythonPath = pythonInputs;
+  pythonPath = optionals enablePython pythonInputs;
 
-    # wrap the otbcli with the environment variable
-    postInstall = ''
-      buildPythonPath $out/otb/python
+  # wrap the otbcli with the environment variable
+  postInstall = ''
+    wrapProgram $out/bin/otbcli \
+        --set OTB_INSTALL_DIR "$out" \
+        --set OTB_APPLICATION_PATH "$out/lib/otb/applications"
+  '';
 
-      wrapProgram $out/bin/otbcli \
-          --set OTB_INSTALL_DIR "$out" \
-          --set OTB_APPLICATION_PATH "$out/lib/otb/applications"
-    '';
-
-    meta = {
-      description = "Orfeo ToolBox";
-      homepage = "https://www.orfeo-toolbox.org/";
-      license = lib.licenses.asl20;
-      maintainers = with lib.maintainers; [daspk04];
-    };
-  }
+  meta = {
+    description = "Orfeo ToolBox";
+    homepage = "https://www.orfeo-toolbox.org/";
+    license = lib.licenses.asl20;
+    maintainers = with lib.maintainers; [ daspk04 ];
+  };
+}

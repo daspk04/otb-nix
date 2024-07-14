@@ -1,8 +1,10 @@
-{ stdenv
-, fetchgit
-, cmake
+{ lib
 , boost
+, cmake
+, fetchgit
 , openssl
+, stdenv
+, enableOpenMP ? false
 , pkgs
 , ...
 }:
@@ -25,21 +27,24 @@ stdenv.mkDerivation rec {
   # https://gitlab.orfeo-toolbox.org/orfeotoolbox/otb/-/tree/develop/SuperBuild/patches/SHARK?ref_type=heads
   # patch of hdf5 seems to be not needed based on latest master branch of shark-ml as HDF5 has been removed
   # c.f https://github.com/Shark-ML/Shark/commit/221c1f2e8abfffadbf3c5ef7cf324bc6dc9b4315
-  #    patches = [
-  #        ./shark-1-disable-hdf5-all.diff
-  #        ./shark-2-ext-num-literals-all.diff
-  #    ];
+  patches = [
+    #        ./shark-1-disable-hdf5-all.diff
+    ./shark-2-ext-num-literals-all.diff
+  ];
 
   # https://gitlab.orfeo-toolbox.org/orfeotoolbox/otb/-/blob/develop/SuperBuild/CMake/External_shark.cmake?ref_type=heads
-  cmakeFlags = [
-    "-DBUILD_SHARED_LIBS=ON"
-    "-DBUILD_EXAMPLES=OFF"
-    "-DBUILD_DOCS=OFF"
-    "-DBUILD_TESTING=OFF"
-    #      "-DENABLE_HDF5=OFF" no more needed based on latest master
-    "-DENABLE_CBLAS=OFF"
-    "-DENABLE_OPENMP=OFF" # otb has this as optional flag during superbuild, make this as optional flag in nix
-  ];
+  cmakeFlags =
+    [
+      "-DBUILD_SHARED_LIBS=ON"
+      "-DBUILD_EXAMPLES=OFF"
+      "-DBUILD_DOCS=OFF"
+      "-DBUILD_TESTING=OFF"
+      #      "-DENABLE_HDF5=OFF" no more needed based on latest master
+      "-DENABLE_CBLAS=OFF"
+    ]
+    ++ lib.optionals (!enableOpenMP) [
+      "-DENABLE_OPENMP=OFF"
+    ];
   buildInputs = [
     boost
     openssl
@@ -49,6 +54,6 @@ stdenv.mkDerivation rec {
 
   meta = {
     description = "The Shark Machine Leaning Library";
-    homepage = "http://shark-ml.github.io/Shark/";
+    homepage = "https://shark-ml.github.io/Shark/";
   };
 }

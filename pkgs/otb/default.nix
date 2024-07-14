@@ -1,4 +1,7 @@
 { cmake
+, fetchgit
+, makeWrapper
+, lib
 , stdenv
 , swig
 , which
@@ -12,23 +15,20 @@
 , muparserx
 , opencv
 , perl
-, enableFeatureExtraction ? false
-, enableHyperspectral ? false
-, enableLearning ? false
-, enableMiscellaneous ? false
-, enablePython ? false
-, python3 ? throw "otb: Python support requested, but no python interpreter was given."
-, extraPythonPackages ? ps: with ps; [ ]
-, enableRemote ? false
-, enableSAR ? false
-, enableSegmentation ? false
-, enableStereoProcessing ? false
-, enableTesting ? false
+, python3
 , shark
 , tinyxml
-, makeWrapper
-, fetchgit
-, lib
+, enableFeatureExtraction ? true
+, enableHyperspectral ? true
+, enableLearning ? true
+, enableMiscellaneous ? true
+, enableOpenMP ? false
+, enablePython ? true
+, extraPythonPackages ? ps: with ps; [ ]
+, enableRemote ? true
+, enableSAR ? true
+, enableSegmentation ? true
+, enableStereoProcessing ? true
 , pkgs
 , ...
 }:
@@ -36,12 +36,13 @@ let
   versionMeta = builtins.fromJSON (builtins.readFile ./version.json);
 
   inherit (lib) optionalString optionals optional;
-  pythonInputs = optionals enablePython
-    (with python3.pkgs;
-    [
-      numpy
-    ])
-  ++ (extraPythonPackages python3.pkgs);
+  pythonInputs =
+    optionals enablePython
+      (with python3.pkgs; [
+        numpy
+      ])
+    ++ (extraPythonPackages python3.pkgs);
+  otb-shark = shark.override { enableOpenMP = enableOpenMP; };
 in
 stdenv.mkDerivation rec {
   pname = "otb";
@@ -54,57 +55,71 @@ stdenv.mkDerivation rec {
     rev = versionMeta.rev;
   };
 
+  nativeBuildInputs =
+    [
+      cmake
+      makeWrapper
+      swig
+      which
+    ]
+    ++ optionals enablePython [
+      python3.pkgs.wrapPython
+    ];
 
-  nativeBuildInputs = [
-    cmake
-    makeWrapper
-    swig
-    which
-  ] ++ optionals enablePython [
-    python3.pkgs.wrapPython
-  ];
-
-  buildInputs = [
-    boost
-    curl
-    gdal
-    itk_4_13
-    libsvm
-    libgeotiff
-    muparser
-    muparserx
-    opencv
-    perl
-    shark
-    tinyxml
-  ] ++ optionals enablePython [
-    python3
-  ] ++ optionals enablePython pythonInputs;
-
+  buildInputs =
+    [
+      boost
+      curl
+      gdal
+      itk_4_13
+      libsvm
+      libgeotiff
+      muparser
+      muparserx
+      opencv
+      perl
+      otb-shark
+      tinyxml
+    ]
+    ++ optionals enablePython [
+      python3
+    ]
+    ++ optionals enablePython pythonInputs;
 
   # https://www.orfeo-toolbox.org/CookBook/CompilingOTBFromSource.html#native-build-with-system-dependencies
-  cmakeFlags = [
-  ] ++ optionals enableFeatureExtraction [
-    "-DOTB_BUILD_FeaturesExtraction=ON"
-  ] ++ optionals enableHyperspectral [
-    "-DOTB_BUILD_Hyperspectral=ON"
-  ] ++ optionals enableLearning [
-    "-DOTB_BUILD_Learning=ON"
-  ] ++ optionals enableMiscellaneous [
-    "-DOTB_BUILD_Miscellaneous=ON"
-  ] ++ optionals enableRemote [
-    "-DOTB_BUILD_RemoteModules=ON"
-  ] ++ optionals enableSAR [
-    "-DOTB_BUILD_SAR=ON"
-  ] ++ optionals enableSegmentation [
-    "-DOTB_BUILD_Segmentation=ON"
-  ] ++ optionals enableStereoProcessing [
-    "-DOTB_BUILD_StereoProcessing=ON"
-  ] ++ optionals enablePython [
-    "-DOTB_WRAP_PYTHON=ON"
-  ] ++ optionals enableTesting [
-    "-DBUILD_TESTING=ON"
-  ];
+  cmakeFlags =
+    [
+    ]
+    ++ optionals enableFeatureExtraction [
+      "-DOTB_BUILD_FeaturesExtraction=ON"
+    ]
+    ++ optionals enableHyperspectral [
+      "-DOTB_BUILD_Hyperspectral=ON"
+    ]
+    ++ optionals enableLearning [
+      "-DOTB_BUILD_Learning=ON"
+    ]
+    ++ optionals enableMiscellaneous [
+      "-DOTB_BUILD_Miscellaneous=ON"
+    ]
+    ++ optionals enableRemote [
+      "-DOTB_BUILD_RemoteModules=ON"
+    ]
+    ++ optionals enableSAR [
+      "-DOTB_BUILD_SAR=ON"
+    ]
+    ++ optionals enableSegmentation [
+      "-DOTB_BUILD_Segmentation=ON"
+    ]
+    ++ optionals enableStereoProcessing [
+      "-DOTB_BUILD_StereoProcessing=ON"
+    ]
+    ++ optionals enablePython [
+      "-DOTB_WRAP_PYTHON=ON"
+    ]
+    ++ optionals doInstallCheck [
+      "-DBUILD_TESTING=ON"
+    ];
 
   # todo: check if these contains all the required packages for another package to be build against OTB (such remote modules) ?
   propagatedBuildInputs =
@@ -125,7 +140,10 @@ stdenv.mkDerivation rec {
     ]
     ++ optionals enablePython [
       python3
-    ] ++ optionals enablePython pythonInputs;
+    ]
+    ++ optionals enablePython pythonInputs;
+
+  doInstallCheck = false;
 
   pythonPath = optionals enablePython pythonInputs;
 
@@ -136,10 +154,10 @@ stdenv.mkDerivation rec {
         --set OTB_APPLICATION_PATH "$out/lib/otb/applications"
   '';
 
-#  # todo: this still doesn't fix importing of otb via python
-#  postFixup = ''
-#    wrapPythonProgramsIn "$out/lib/otb/python" "$out $pythonPath"
-#  '';
+  #  # todo: this still doesn't fix importing of otb via python
+  #  postFixup = ''
+  #    wrapPythonProgramsIn "$out/lib/otb/python" "$out $pythonPath"
+  #  '';
 
   meta = {
     description = "Orfeo ToolBox";

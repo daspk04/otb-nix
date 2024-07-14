@@ -60,6 +60,8 @@ stdenv.mkDerivation rec {
     makeWrapper
     swig
     which
+  ] ++ optionals enablePython [
+    python3.pkgs.wrapPython
   ];
 
   buildInputs = [
@@ -133,6 +135,11 @@ stdenv.mkDerivation rec {
         --set OTB_INSTALL_DIR "$out" \
         --set OTB_APPLICATION_PATH "$out/lib/otb/applications"
   '';
+
+#  # todo: this still doesn't fix importing of otb via python
+#  postFixup = ''
+#    wrapPythonProgramsIn "$out/lib/otb/python" "$out $pythonPath"
+#  '';
 
   meta = {
     description = "Orfeo ToolBox";

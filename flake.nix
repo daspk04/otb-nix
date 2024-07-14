@@ -28,6 +28,7 @@
           shark = packages.shark;
           itk_4_13 = packages.itk_4_13;
           python3 = python; # build otb with fixed python version
+          enablePython = true;
         };
         packages.default = packages.otb;
         devShells.default = pkgs.mkShell rec {

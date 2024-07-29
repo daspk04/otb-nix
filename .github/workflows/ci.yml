@@ -14,9 +14,9 @@ jobs:
       matrix:
         machine:
           - host: amd64
-            platform: x86-64-linux
+            platform: x86_64-linux
           - host: arm64
-            platform: arm64-linux
+            platform: aarch64-linux
     steps:
       - uses: actions/checkout@v4
       - if: matrix.machine.platform == 'aarch64-linux'

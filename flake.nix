@@ -22,7 +22,15 @@
         };
         python = pkgs.python312; # we fix python version to 3.12 here for the OTB
         nix2containerPkgs = nix2container.packages.${system};
-        gdal = pkgs.gdalMinimal.override {python3 = python;};
+        # The minimal version of gdal and doesn't have arrow support but helps in leaner build
+        # we can mix as per requiremnt which will compile gdal from source
+        # https://github.com/NixOS/nixpkgs/blob/8c50662509100d53229d4be607f1a3a31157fa12/pkgs/development/libraries/gdal/default.nix#L7
+#         gdal = pkgs.gdalMinimal.override {python3 = python;};
+#         gdal = pkgs.gdalMinimal.override {python3 = python;
+#                                            useArrow = true;
+#                                            useHDF = true;
+#                                            useNetCDF = true;};
+        gdal = pkgs.gdal; # gdal full version
         pyPkgs = python.pkgs;
       in rec {
         packages = {

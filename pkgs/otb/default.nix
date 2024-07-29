@@ -121,31 +121,20 @@ in
         "-DBUILD_TESTING=ON"
       ];
 
-    # todo: check if these contains all the required packages for another package to be build against OTB (such remote modules) ?
     propagatedBuildInputs =
-      [
-        boost
-        curl
-        gdal
-        itk_4_13
-        libgeotiff
-        libsvm
-        muparser
-        muparserx
-        opencv
-        perl
-        shark
-        swig
-        tinyxml
-      ]
-      ++ optionals enablePython [
-        python3
-      ]
-      ++ optionals enablePython pythonInputs;
+      []
+      ++ pythonInputs;
 
     doInstallCheck = false;
 
-    pythonPath = optionals enablePython pythonInputs;
+    computed_PATH = lib.makeBinPath propagatedBuildInputs;
+
+    # Make PATH available to subprocesses
+    makeWrapperArgs = [
+        "--prefix PATH : ${computed_PATH}"
+    ];
+
+    #    pythonPath = optionals enablePython pythonInputs ++ ["$out/lib/otb/python"];
 
     # wrap the otbcli with the environment variable
     postInstall = ''

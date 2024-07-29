@@ -7,22 +7,19 @@
     flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs =
-    { self
-    , nixpkgs
-    , nixpkgs-unstable
-    , flake-utils
-    ,
-    }:
+  outputs = {
+    self,
+    nixpkgs,
+    nixpkgs-unstable,
+    flake-utils,
+  }:
     flake-utils.lib.eachDefaultSystem (
-      system:
-      let
-        pkgs = import nixpkgs { inherit system; };
+      system: let
+        pkgs = import nixpkgs {inherit system;};
         python = pkgs.python312; # we fix python version to 3.12 here for the OTB
-      in
-      rec {
-        packages.shark = pkgs.callPackage ./pkgs/shark/. { inherit system; };
-        packages.itk_4_13 = pkgs.callPackage ./pkgs/itk_4_13_3/. { inherit system; };
+      in rec {
+        packages.shark = pkgs.callPackage ./pkgs/shark/. {inherit system;};
+        packages.itk_4_13 = pkgs.callPackage ./pkgs/itk_4_13_3/. {inherit system;};
         packages.otb = pkgs.callPackage ./pkgs/otb/. {
           inherit system;
           shark = packages.shark;

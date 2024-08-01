@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        machine:
+          - host: amd64
+            platform: x86_64-linux
+          - host: arm64
+            platform: aarch64-linux
+    steps:
+      - uses: actions/checkout@v4
+      - if: matrix.machine.platform == 'aarch64-linux'
+        uses: docker/setup-qemu-action@v3
+      - uses: DeterminateSystems/nix-installer-action@main
+        with:
+          extra-conf: |
+            fallback = true
+            http-connections = 128
+            max-substitution-jobs = 128
+            extra-platforms = aarch64-linux
+      - name: Build system
+        run: |
+          nix build --system ${{ matrix.machine.platform }} .

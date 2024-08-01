@@ -153,6 +153,130 @@ Here is an example of how to create an `flake.nix` with all the above python pac
 }
 ```
 
+## Docker
+- Docker Image for OTB: 
+  - Linux AMD64
+  - Linux ARM64: To build OTB for `linux-aarach-64` there are 3 options:
+    - The easiest way would be to build natively with ARM64 (Still needs to be tested)
+    - Complie using an emulator (Tested with GitHub Action and it builds fine)
+    - We can also via nix cross compiler (Still needs to be Tested)
+
+One can build a docker image for OTB with python support (default).
+```
+1) Clone this repo
+2) make build_docker_x86_64
+2) docker run -it --rm otb
+```
+Example: How build a docker image based on `OTB`, `pyotb`, `gdal` and `rasterio` 
+without cloning this repo. 
+
+1) Create a local directory
+2) Create a `flake.nix` as shown below which already has the required python packages and as 
+it points to this github directory so we don't need to clone.
+3) Copy the contents in [docker.nix](docker.nix) file and put it in the local directory.
+
+Local directory should basically contain 2 files (optional copy the Makefile):
+```bash
+flake.nix
+docker.nix
+```
+
+4) Run command as mentioned below:
+
+```
+1) nix run .\#otb-docker-x86_64.copyToDockerDaemon
+2) docker run -it --rm otb
+```
+
+Example of `flake.nix` with `OTB`, `Gdal`, `Pyotb` and `Rasterio`:
+```nix
+{
+  description = "A flake for Orfeo Toolbox";
+
+  inputs = {
+    nixpkgs.url = "github:nixos/nixpkgs/24.05";
+    nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    flake-utils.url = "github:numtide/flake-utils";
+    otbpkgs.url = "github:daspk04/otb-nix";
+    nix2container.url = "github:nlewo/nix2container";
+  };
+
+  outputs = {
+    self,
+    nixpkgs,
+    nixpkgs-unstable,
+    nix2container,
+    flake-utils,
+    otbpkgs,
+  }:
+    flake-utils.lib.eachDefaultSystem (
+      system: let
+        pkgs = import nixpkgs {inherit system;};
+        nix2containerPkgs = nix2container.packages.${system};
+        python = pkgs.python312;
+        pyPkgs = python.pkgs;
+        otb = otbpkgs.packages.${system}.otb.override {
+          python3 = python;
+          enablePython = true;
+        };
+
+        otbPath = with pkgs; pkgs.lib.makeLibraryPath [otb];
+
+        pyotb = pyPkgs.buildPythonPackage rec {
+          pname = "pyotb";
+          version = "2.0.3.dev2";
+          format = "pyproject";
+          docheck = false;
+
+          src = builtins.fetchGit {
+            name = pname;
+            url = "https://github.com/orfeotoolbox/pyotb.git";
+            ref = "refs/tags/${version}";
+            rev = "de801eae7e2bd80706801df4a48b23998136a5cd";
+          };
+
+          nativeBuildInputs = with pyPkgs; [
+            setuptools
+          ];
+
+          propagatedBuildInputs = with pyPkgs; [
+            numpy
+          ];
+        };
+      in rec {
+        packages = {
+          otb-docker-x86_64 = pkgs.callPackage ./docker.nix {
+            inherit pkgs otb nix2containerPkgs;
+            img-name = "otb";
+            img-tag = "latest";
+            python3 = python;
+            extra-python-packages = with pyPkgs; [pyotb gdal rasterio];
+          };
+        };
+        devShells.default = pkgs.mkShell rec {
+          packages = with pkgs; [
+            bashInteractive
+            pyPkgs.gdal
+            pypkgs.rasterio
+            pyPkgs.python
+            pyPkgs.venvShellHook
+            pyotb
+            otb
+          ];
+          venvDir = "./.venv";
+
+          postShellHook = ''
+            export PYTHONPATH="$PYTHONPATH:${otbPath}/otb/python"
+          '';
+        };
+      }
+    );
+}
+
+```
+
+
+
 ## Develop
 - In case one needs to develop or experiment then
 - Clone this repo and make changes and push to your repository 
@@ -180,10 +304,14 @@ Nix should be installed and flakes should be enabled.
   - https://www.tweag.io/blog/2020-05-25-flakes/
 - How to install direnv 
   - https://github.com/nix-community/nix-direnv?tab=readme-ov-file#installation
+- How to cross compile in Nix:
+  - https://thewagner.net/blog/2023/11/20/building-nix-packages-for-the-raspberry-pi-with-github-actions/
+  - https://lgug2z.com/articles/building-and-privately-caching-x86-and-aarch64-nixos-systems-on-github-actions/
+
 
 
 ## TODO
- - [ ] Build a Nix Docker for the OTB package 
+ - [X] Build a Nix Docker for the OTB package [Linux AMD64 and Linux ARM64]
  - [ ] Build OTB with [remote modules]((https://www.orfeo-toolbox.org/CookBook/RemoteModules.html)) (OTBTF, TimeSeriesGapFilling, etc)
 
 

@@ -30,4 +30,5 @@ jobs:
             extra-platforms = aarch64-linux
       - name: Build system
         run: |
-          nix build --system ${{ matrix.machine.platform }} .
+          nix build --system ${{ matrix.machine.platform }} .#otb-all
+          nix build --system ${{ matrix.machine.platform }} .#otb

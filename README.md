@@ -160,7 +160,7 @@ Here is an example of how to create an `flake.nix` with all the above python pac
   - Linux AMD64
   - Linux ARM64: To build OTB for `linux-aarch-64` there are 3 options:
     - The easiest way would be to build natively with ARM64 (Still needs to be tested)
-    - Complie using an emulator (Tested with [GitHub Action](https://github.com/daspk04/otb-nix/actions/runs/10191427474) and it builds fine)
+    - Compile using an emulator (Tested with [GitHub Action](https://github.com/daspk04/otb-nix/actions/runs/10191427474) and it builds fine)
     - We can also via nix cross compiler (Still needs to be Tested)
 
 1) One can build a docker image for OTB with python support and no remote modules (default).

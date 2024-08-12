@@ -45,11 +45,40 @@
             enablePython = true;
           };
 
-          otb-docker-x86_64 = pkgs.callPackage ./docker.nix {
+          otb-dev = pkgs.callPackage ./pkgs/otb/. {
+            inherit system;
+            shark = packages.shark;
+            itk_4_13 = packages.itk_4_13;
+            gdal = gdal;
+            python3 = python; # build otb with fixed python version
+            enablePython = true;
+            enablePrefetch = true;
+            enableOtbtf = true;
+            enableMLUtils = true;
+            enablePhenology = true;
+            enableBioVars = true;
+            enableGRM = true;
+            enableLSGRM = true;
+            enableSimpleExtraction = true;
+            enableTemporalGapfilling = true;
+            enableTimeSeriesUtils = true;
+            enableTemporalSmoothing = true;
+          };
+
+          otb-docker = pkgs.callPackage ./docker.nix {
             inherit pkgs nix2containerPkgs;
             img-name = "otb";
             img-tag = "latest";
             otb = packages.otb;
+            python3 = python;
+            extra-python-packages = with pyPkgs; [packages.otb.propagatedBuildInputs];
+          };
+
+          otb-dev-docker = pkgs.callPackage ./docker.nix {
+            inherit pkgs nix2containerPkgs;
+            img-name = "otb-dev";
+            img-tag = "latest";
+            otb = packages.otb-dev;
             python3 = python;
             extra-python-packages = with pyPkgs; [packages.otb.propagatedBuildInputs];
           };

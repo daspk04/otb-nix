@@ -9,6 +9,8 @@
   pkgs,
   ...
 }: let
+  user = "otbuser";
+  home-dir = "/home/${user}";
   py-env = (
     python3.withPackages (pp:
       with pp;
@@ -24,7 +26,7 @@ in
   nix2containerPkgs.nix2container.buildImage rec {
     name = img-name;
     tag = img-tag;
-
+    initializeNixDatabase = true;
     copyToRoot = pkgs.buildEnv {
       name = "root";
       paths = with pkgs.dockerTools;
@@ -50,6 +52,7 @@ in
           git
           neovim-unwrapped
           zsh
+          nix
 
           # Library
           otb
@@ -59,6 +62,12 @@ in
 
       pathsToLink = ["/bin" "/etc" "/var" "/run" "/tmp" "/lib"];
       postBuild = ''
+        if -e $HOME; then
+            echo "home directory exists"
+            exit 1
+        fi
+            mkdir -p $out/${home-dir}
+        mkdir -p ~/.config/nix/ && printf "experimental-features = nix-command flakes\n" > ~/.config/nix/nix.conf
         mkdir -p $out/tmp
         mkdir -p $out/etc
         cat <<HEREDOC > $out/etc/zshrc
@@ -79,8 +88,10 @@ in
         "EDITOR=nvim"
         "PYTHONPATH=${py-env-sitepackages}:${otbLibPath}/otb/python"
         "PATH=${py-env-bin}:${otbBinPath}:/bin"
+        "OTB_APPLICATION_PATH=${otbLibPath}/otb/applications"
         "TMPDIR=/tmp"
+        "USER=${user}"
+        "HOME=${home-dir}"
       ];
     };
   }
-

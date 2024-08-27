@@ -77,8 +77,8 @@ jobs:
           http-connections = 128
           max-substitution-jobs = 128
           extra-platforms = aarch64-linux
-          - name: Build system
     - uses: DeterminateSystems/magic-nix-cache-action@main
-    - run: |
+    - name: Build system
+      run: |
           nix build --system aarch64-linux .#otb-dev
           nix build --system aarch64-linux .#otb

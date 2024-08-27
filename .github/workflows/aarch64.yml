@@ -80,5 +80,5 @@ jobs:
           - name: Build system
     - uses: DeterminateSystems/magic-nix-cache-action@main
     - run: |
-          nix build --system ${{ matrix.machine.platform }} .#otb-dev
-          nix build --system ${{ matrix.machine.platform }} .#otb
+          nix build --system aarch64-linux .#otb-dev
+          nix build --system aarch64-linux .#otb

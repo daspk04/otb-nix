@@ -1,3 +1,16 @@
+#   Copyright 2024 Pratyush Das
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
 {
   cmake,
   fetchgit,
@@ -59,82 +72,17 @@
   # remote modules based on :
   # https://forgemia.inra.fr/orfeo-toolbox
   # https://gitlab.orfeo-toolbox.org/orfeotoolbox/otb/-/tree/develop/Modules/Remote?ref_type=heads
-  mlUtils = builtins.fetchGit {
-    name = "otb-mlutils";
-    url = "https://forgemia.inra.fr/orfeo-toolbox/otb-mlutils.git";
-    ref = "master";
-    rev = "4f6de3654b249de98d5d5fef9c4bf4b623280ce4";
-  };
-
-  otbPrefetch = builtins.fetchGit {
-    name = "otb-prefetch";
-    url = "https://github.com/remicres/otb-prefetch.git";
-    ref = "main";
-    rev = "1faaa10d79e393bd45da95dde590f4857910c0ce";
-  };
-
-  otbTF = builtins.fetchGit {
-    name = "otbtf";
-    url = "https://forgemia.inra.fr/orfeo-toolbox/otbtf.git";
-    ref = "refs/tags/r4.3.1";
-    rev = "c9b02fb7d1ed5c28a45dc40dd15bfb4b59b77e95";
-  };
-
-  otbPhenology = builtins.fetchGit {
-    name = "otb-phenology";
-    url = "https://gitlab.orfeo-toolbox.org/jinglada/phenotb.git";
-    ref = "master";
-    rev = "85e991ab23695097ae59e034992695556fde5b2c";
-  };
-
-  otbBioVars = builtins.fetchGit {
-    name = "otb-biovars";
-    url = "https://gitlab.orfeo-toolbox.org/jinglada/otb-bv.git";
-    ref = "master";
-    rev = "519297118a6bbce819159e46432f83f4a5879d93";
-  };
-
-  otbGRM = builtins.fetchGit {
-    name = "otb-GRM";
-    url = "https://gitlab.irstea.fr/remi.cresson/GRM.git";
-    ref = "master";
-    rev = "0aca878d19c98d33fe7870ad9f37340235c6a0eb";
-  };
-
-  otbLSGRM = builtins.fetchGit {
-    name = "otb-LSGRM";
-    url = "https://gitlab.irstea.fr/remi.cresson/LSGRM.git";
-    ref = "disassembled";
-    rev = "52e1b0c0bd89eea2a94ac931a39da1b0e5a71833";
-  };
-
-  otbSeTools = builtins.fetchGit {
-    name = "otb-simpleextractiontools";
-    url = "https://forgemia.inra.fr/orfeo-toolbox/otb-simpleextractiontools.git";
-    ref = "master";
-    rev = "caad8a1b7a5858638c13e01866bbb45a9e2a87e5";
-  };
-
-  otbTempGapfill = builtins.fetchGit {
-    name = "otb-temporalgapfilling";
-    url = "https://gitlab.orfeo-toolbox.org/jinglada/temporalgapfilling.git";
-    ref = "master";
-    rev = "88e4e4254f17e51e908f622d364826da9c367a95";
-  };
-
-  otbTsUtils = builtins.fetchGit {
-    name = "otb-timeseriesutils";
-    url = "https://gitlab.irstea.fr/remi.cresson/TimeSeriesUtils.git";
-    ref = "master";
-    rev = "f0da48e07f9d09b2081cb6bdcbfcb4d189d38051";
-  };
-
-  otbTsSmooth = builtins.fetchGit {
-    name = "otb-temporalsmoothing";
-    url = "https://gitlab.irstea.fr/remi.cresson/TemporalSmoothing.git";
-    ref = "master";
-    rev = "15d0d710c3fe88a723e52c4ccc6c03fc7f669a0d";
-  };
+  mlUtils = pkgs.callPackage ./otb-mlutils/. {};
+  otbPrefetch = pkgs.callPackage ./otb-prefetch/. {};
+  otbTF = pkgs.callPackage ./otbtf/. {};
+  otbPhenology = pkgs.callPackage ./phenotb/. {};
+  otbBioVars = pkgs.callPackage ./otb-bv/. {};
+  otbGRM = pkgs.callPackage ./otb-GRM/. {};
+  otbLSGRM = pkgs.callPackage ./otb-LSGRM/. {};
+  otbSeTools = pkgs.callPackage ./otb-simpleextractiontools/. {};
+  otbTempGapfill = pkgs.callPackage ./otb-temporalgapfilling/. {};
+  otbTsUtils = pkgs.callPackage ./otb-timeseriesutils/. {};
+  otbTsSmooth = pkgs.callPackage ./otb-temporalsmoothing/. {};
 in
   stdenv.mkDerivation rec {
     pname = "otb";

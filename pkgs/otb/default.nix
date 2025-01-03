@@ -13,7 +13,7 @@
 #   limitations under the License.
 {
   cmake,
-  fetchgit,
+  fetchFromGitHub,
   makeWrapper,
   lib,
   stdenv,
@@ -58,7 +58,6 @@
   pkgs,
   ...
 }: let
-  versionMeta = builtins.fromJSON (builtins.readFile ./version.json);
 
   inherit (lib) optionalString optionals optional;
   pythonInputs =
@@ -85,15 +84,15 @@
   otbTsSmooth = pkgs.callPackage ./otb-temporalsmoothing/. {};
 in
   stdenv.mkDerivation rec {
-    pname = "otb";
-    version = versionMeta.version;
+  pname = "otb";
+  version = "9.1.0";
 
-    src = builtins.fetchGit {
-      name = pname;
-      url = "https://gitlab.orfeo-toolbox.org/orfeotoolbox/otb";
-      ref = "refs/tags/${version}";
-      rev = versionMeta.rev;
-    };
+  src = fetchFromGitHub {
+    owner = "orfeotoolbox";
+    repo = "OTB";
+    rev = "refs/tags/${version}";
+    hash = "sha256-NRyq6WTGxtPpBHXBXLCQyq60n0cJ/575xPs7QYSziYo=";
+  };
 
     postPatch = lib.concatStringsSep "\n" (
       (optionals enableMLUtils ["ln -sr ${mlUtils} Modules/Remote/MLUtils"])

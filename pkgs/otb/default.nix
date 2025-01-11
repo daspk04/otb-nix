@@ -13,6 +13,7 @@
 #   limitations under the License.
 {
   cmake,
+  clangStdenv,
   fetchFromGitHub,
   makeWrapper,
   lib,
@@ -58,6 +59,8 @@
   pkgs,
   ...
 }: let
+
+  stdenv = clangStdenv;
 
   inherit (lib) optionalString optionals optional;
   pythonInputs =

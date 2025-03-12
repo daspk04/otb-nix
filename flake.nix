@@ -68,7 +68,9 @@
             enablePrefetch = true;
             enableOtbtf = true;
             enableMLUtils = true;
+            enableNormlimSigma0 = true;
             enablePhenology = true;
+            enableRTCGamma0 = true;
             enableBioVars = true;
             enableGRM = true;
             enableLSGRM = true;

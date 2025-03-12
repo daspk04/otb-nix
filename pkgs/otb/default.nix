@@ -48,7 +48,9 @@
   enablePrefetch ? false,
   enableOtbtf ? false,
   enableMLUtils ? false,
+  enableNormlimSigma0 ? false,
   enablePhenology ? false,
+  enableRTCGamma0 ? false,
   enableBioVars ? false,
   enableGRM ? false,
   enableLSGRM ? false,
@@ -85,6 +87,8 @@
   otbTempGapfill = pkgs.callPackage ./otb-temporalgapfilling/. {};
   otbTsUtils = pkgs.callPackage ./otb-timeseriesutils/. {};
   otbTsSmooth = pkgs.callPackage ./otb-temporalsmoothing/. {};
+  otbNormlimSigma0 = pkgs.callPackage ./otb-s1tiling-normlimsigma0/. {};
+  otbRTCGamma0 = pkgs.callPackage ./otb-s1tiling-rtcgamma0/. {};
 in
   stdenv.mkDerivation rec {
   pname = "otb";
@@ -124,6 +128,15 @@ in
       ])
       ++ (optionals enableTimeSeriesUtils ["ln -sr ${otbTsUtils} Modules/Remote/OTBTimeSeriesUtils"])
       ++ (optionals enableTemporalSmoothing ["ln -sr ${otbTsSmooth} Modules/Remote/OTBTemporalSmoothing"])
+      ++ (optionals enableNormlimSigma0 [
+      "cp --no-preserve=mode -r ${otbNormlimSigma0} Modules/Remote/SARCalibrationExtended"
+      "substituteInPlace Modules/Remote/SARCalibrationExtended/include/Filters/otbSARCartesianMeanFunctor2.h --replace 'for(auto ind = 0ull, nbElt = outValue.size(); ind < nbElt; ind++)' 'for(std::size_t ind = 0, nbElt = outValue.size(); ind < nbElt; ind++)'"
+      ])
+      ++ (optionals enableRTCGamma0 [
+      "cp --no-preserve=mode -r ${otbRTCGamma0} Modules/Remote/SARCalibrationRTCGamma0"
+      "substituteInPlace Modules/Remote/SARCalibrationRTCGamma0/otb-module.cmake --replace 'OTBApplicationEngine' 'OTBApplicationEngine\n    OTBTransform'"
+      "substituteInPlace Modules/Remote/SARCalibrationRTCGamma0/src/CMakeLists.txt --replace 'target_link_libraries(''$\{otb-module} ''$\{OTBCommon_LIBRARIES} ''$\{OTBITK_LIBRARIES} ''$\{OTBOSSIMAdapters_LIBRARIES})' 'target_link_libraries(''$\{otb-module} ''$\{OTBCommon_LIBRARIES} ''$\{OTBImageBase_LIBRARIES} ''$\{OTBIOGDAL_LIBRARIES} ''$\{OTBTransform_LIBRARIES} ''$\{OTBITK_LIBRARIES} ''$\{OTBOSSIMAdapters_LIBRARIES})'"
+    ])
     );
     nativeBuildInputs =
       [
@@ -204,8 +217,14 @@ in
       ++ optionals enableMLUtils [
         "-DModule_MLUtils=ON"
       ]
+      ++ optionals enableNormlimSigma0 [
+        "-DModule_SARCalibrationExtended=ON"
+      ]
       ++ optionals enablePhenology [
         "-DModule_OTBPhenology=ON"
+      ]
+      ++ optionals enableRTCGamma0 [
+        "-DModule_SARCalibrationRTCGamma0=ON"
       ]
       ++ optionals enableBioVars [
         "-DModule_OTBBioVars=ON"

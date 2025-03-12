@@ -47,11 +47,9 @@
         pyPkgs = python.pkgs;
       in rec {
         packages = {
-          shark = pkgs.callPackage ./pkgs/shark/. {inherit system;};
           itk_4_13 = pkgs.callPackage ./pkgs/itk_4_13_3/. {inherit system;};
           otb = pkgs.callPackage ./pkgs/otb/. {
             inherit system;
-            shark = packages.shark;
             itk_4_13 = packages.itk_4_13;
             gdal = gdal;
             python3 = python; # build otb with fixed python version
@@ -60,7 +58,6 @@
 
           otb-dev = pkgs.callPackage ./pkgs/otb/. {
             inherit system;
-            shark = packages.shark;
             itk_4_13 = packages.itk_4_13;
             gdal = gdal;
             python3 = python; # build otb with fixed python version
@@ -68,7 +65,9 @@
             enablePrefetch = true;
             enableOtbtf = true;
             enableMLUtils = true;
+            enableNormlimSigma0 = true;
             enablePhenology = true;
+            enableRTCGamma0 = true;
             enableBioVars = true;
             enableGRM = true;
             enableLSGRM = true;

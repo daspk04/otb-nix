@@ -34,7 +34,7 @@
   python3,
   shark,
   tinyxml,
-  tensorflow,
+  tensorflow ? null,
   enableFeatureExtraction ? true,
   enableHyperspectral ? true,
   enableLearning ? true,

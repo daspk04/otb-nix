@@ -34,6 +34,7 @@
   python3,
   shark,
   tinyxml,
+  tensorflow ? null,
   enableFeatureExtraction ? true,
   enableHyperspectral ? true,
   enableLearning ? true,
@@ -47,6 +48,7 @@
   enableStereoProcessing ? true,
   enablePrefetch ? false,
   enableOtbtf ? false,
+  enableTf ? false,
   enableMLUtils ? false,
   enableNormlimSigma0 ? false,
   enablePhenology ? false,
@@ -70,6 +72,7 @@
     (with python3.pkgs; [
       numpy
     ])
+    ++ optionals enableTf [ tensorflow ]
     ++ (extraPythonPackages python3.pkgs);
   otb-shark = shark.override {enableOpenMP = enableOpenMP;};
 
@@ -104,7 +107,10 @@ in
     postPatch = lib.concatStringsSep "\n" (
       (optionals enableMLUtils ["ln -sr ${mlUtils} Modules/Remote/MLUtils"])
       ++ (optionals enablePrefetch ["ln -sr ${otbPrefetch} Modules/Remote/OTBPrefetch"])
-      ++ (optionals enableOtbtf ["ln -sr ${otbTF} Modules/Remote/otbtf"])
+      ++ (optionals enableOtbtf [
+        "cp --no-preserve=mode -r ${otbTF} Modules/Remote/otbtf"
+        "substituteInPlace Modules/Remote/otbtf/include/otbTensorflowCopyUtils.cxx --replace-fail 'values.size()' 'static_cast<long>(values.size())'"
+      ])
       ++ (optionals enablePhenology [
         "ln -sr ${otbPhenology} Modules/Remote/OTBPhenology"
         "rm Modules/Remote/phenotb.remote.cmake"
@@ -137,6 +143,12 @@ in
       "substituteInPlace Modules/Remote/SARCalibrationRTCGamma0/otb-module.cmake --replace 'OTBApplicationEngine' 'OTBApplicationEngine\n    OTBTransform'"
       "substituteInPlace Modules/Remote/SARCalibrationRTCGamma0/src/CMakeLists.txt --replace 'target_link_libraries(''$\{otb-module} ''$\{OTBCommon_LIBRARIES} ''$\{OTBITK_LIBRARIES} ''$\{OTBOSSIMAdapters_LIBRARIES})' 'target_link_libraries(''$\{otb-module} ''$\{OTBCommon_LIBRARIES} ''$\{OTBImageBase_LIBRARIES} ''$\{OTBIOGDAL_LIBRARIES} ''$\{OTBTransform_LIBRARIES} ''$\{OTBITK_LIBRARIES} ''$\{OTBOSSIMAdapters_LIBRARIES})'"
     ])
+      ++ [
+      (''
+        substituteInPlace CMakeLists.txt --replace-fail "CXX_STANDARD" ""
+        substituteInPlace Modules/ThirdParty/6S/src/otb_6S_f2c.h --replace-fail "register " ""
+      '')
+    ]
     );
     nativeBuildInputs =
       [
@@ -211,8 +223,13 @@ in
         "-DModule_OTBPrefetch=ON"
       ]
       ++ optionals enableOtbtf [
-        "-DOTB_USE_TENSORFLOW=OFF"
+        (lib.cmakeBool "OTB_USE_TENSORFLOW" enableTf)
         "-DModule_OTBTensorflow=ON"
+      ]
+      ++ optionals enableTf [
+        "-Dtensorflow_include_dir=${tensorflow}/${python3.pkgs.python.sitePackages}/tensorflow/include"
+        "-DTENSORFLOW_CC_LIB=${tensorflow}/${python3.pkgs.python.sitePackages}/tensorflow/libtensorflow_cc.so.2"
+        "-DTENSORFLOW_FRAMEWORK_LIB=${tensorflow}/${python3.pkgs.python.sitePackages}/tensorflow/libtensorflow_framework.so.2"
       ]
       ++ optionals enableMLUtils [
         "-DModule_MLUtils=ON"

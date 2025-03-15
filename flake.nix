@@ -48,6 +48,8 @@
       in rec {
         packages = {
           itk_4_13 = pkgs.callPackage ./pkgs/itk_4_13_3/. {inherit system;};
+          # override the tensorflow package with required header files for
+          tensorflow = pkgs.callPackage ./pkgs/tensorflow/. {inherit system; python3 = python;};
           otb = pkgs.callPackage ./pkgs/otb/. {
             inherit system;
             itk_4_13 = packages.itk_4_13;
@@ -75,6 +77,8 @@
             enableTemporalGapfilling = true;
             enableTimeSeriesUtils = true;
             enableTemporalSmoothing = true;
+            enableTf = true;
+            tensorflow = packages.tensorflow;
           };
 
           otb-docker = pkgs.callPackage ./docker.nix {

@@ -189,84 +189,39 @@ in
 
     # https://www.orfeo-toolbox.org/CookBook/CompilingOTBFromSource.html#native-build-with-system-dependencies
     cmakeFlags =
-      [
-      ]
-      ++ optionals enableFeatureExtraction [
-        "-DOTB_BUILD_FeaturesExtraction=ON"
-      ]
-      ++ optionals enableHyperspectral [
-        "-DOTB_BUILD_Hyperspectral=ON"
-      ]
-      ++ optionals enableLearning [
-        "-DOTB_BUILD_Learning=ON"
-      ]
-      ++ optionals enableMiscellaneous [
-        "-DOTB_BUILD_Miscellaneous=ON"
-      ]
-      ++ optionals enableRemote [
-        "-DOTB_BUILD_RemoteModules=ON"
-      ]
-      ++ optionals enableSAR [
-        "-DOTB_BUILD_SAR=ON"
-      ]
-      ++ optionals enableSegmentation [
-        "-DOTB_BUILD_Segmentation=ON"
-      ]
-      ++ optionals enableStereoProcessing [
-        "-DOTB_BUILD_StereoProcessing=ON"
-      ]
-      ++ optionals enablePython [
-        "-DOTB_WRAP_PYTHON=ON"
-      ]
-      ++ optionals finalAttrs.doInstallCheck [
-        "-DBUILD_TESTING=ON"
-      ]
-      ++ optionals enablePrefetch [
-        "-DModule_OTBPrefetch=ON"
-      ]
-      ++ optionals enableOtbtf [
-        (lib.cmakeBool "OTB_USE_TENSORFLOW" enableTf)
-        "-DModule_OTBTensorflow=ON"
-      ]
-      ++ optionals enableTf [
-        "-Dtensorflow_include_dir=${tensorflow}/${python3.pkgs.python.sitePackages}/tensorflow/include"
-        "-DTENSORFLOW_CC_LIB=${tensorflow}/${python3.pkgs.python.sitePackages}/tensorflow/libtensorflow_cc.so.2"
-        "-DTENSORFLOW_FRAMEWORK_LIB=${tensorflow}/${python3.pkgs.python.sitePackages}/tensorflow/libtensorflow_framework.so.2"
-      ]
-      ++ optionals enableMLUtils [
-        "-DModule_MLUtils=ON"
-      ]
-      ++ optionals enableNormlimSigma0 [
-        "-DModule_SARCalibrationExtended=ON"
-      ]
-      ++ optionals enablePhenology [
-        "-DModule_OTBPhenology=ON"
-      ]
-      ++ optionals enableRTCGamma0 [
-        "-DModule_SARCalibrationRTCGamma0=ON"
-      ]
-      ++ optionals enableBioVars [
-        "-DModule_OTBBioVars=ON"
-      ]
-      ++ optionals enableGRM [
-        "-DModule_otbGRM=ON"
-      ]
-      ++ optionals enableLSGRM [
-        "-DModule_LSGRM=ON"
-      ]
-      ++ optionals enableSimpleExtraction [
-        "-DModule_SimpleExtractionTools=ON"
-      ]
-      ++ optionals enableTemporalGapfilling [
-        "-DModule_OTBTemporalGapFilling=ON"
-      ]
-      ++ optionals enableTimeSeriesUtils [
-        "-DModule_TimeSeriesUtils=ON"
-      ]
-      ++ optionals enableTemporalSmoothing [
-        "-DModule_TemporalSmoothing=ON"
-      ]
-      ++ optionals enableFFTW (lib.cmakeBool "OTB_USE_FFTW" true);
+    optional enableFeatureExtraction (lib.cmakeBool "OTB_BUILD_FeaturesExtraction" true)
+    ++ optional enableHyperspectral (lib.cmakeBool "OTB_BUILD_Hyperspectral" true)
+    ++ optional enableLearning (lib.cmakeBool "OTB_BUILD_Learning" true)
+    ++ optional enableMiscellaneous (lib.cmakeBool "OTB_BUILD_Miscellaneous" true)
+    ++ optional enableOpenMP (lib.cmakeBool "OTB_USE_OPENMP" true)
+    ++ optional enableRemote (lib.cmakeBool "OTB_BUILD_RemoteModules" true)
+    ++ optional enableSAR (lib.cmakeBool "OTB_BUILD_SAR" true)
+    ++ optional enableSegmentation (lib.cmakeBool "OTB_BUILD_Segmentation" true)
+    ++ optional enableStereoProcessing (lib.cmakeBool "OTB_BUILD_StereoProcessing" true)
+    ++ optional enablePython (lib.cmakeBool "OTB_WRAP_PYTHON" true)
+    ++ optional finalAttrs.doInstallCheck (lib.cmakeBool "BUILD_TESTING" true)
+    ++ optionals enablePrefetch (lib.cmakeBool "Module_OTBPrefetch" true)
+    ++ optionals enableOtbtf [
+    (lib.cmakeBool "OTB_USE_TENSORFLOW" enableTf)
+    (lib.cmakeBool "Module_OTBTensorflow" true)
+    ]
+    ++ optionals enableTf [
+    "-Dtensorflow_include_dir=${tensorflow}/${python3.pkgs.python.sitePackages}/tensorflow/include"
+    "-DTENSORFLOW_CC_LIB=${tensorflow}/${python3.pkgs.python.sitePackages}/tensorflow/libtensorflow_cc.so.2"
+    "-DTENSORFLOW_FRAMEWORK_LIB=${tensorflow}/${python3.pkgs.python.sitePackages}/tensorflow/libtensorflow_framework.so.2"
+    ]
+    ++ optionals enableMLUtils (lib.cmakeBool "Module_MLUtils" true)
+    ++ optionals enableNormlimSigma0 (lib.cmakeBool "Module_SARCalibrationExtended" true)
+    ++ optionals enablePhenology (lib.cmakeBool "Module_OTBPhenology" true)
+    ++ optionals enableRTCGamma0 (lib.cmakeBool "Module_SARCalibrationRTCGamma0" true)
+    ++ optionals enableBioVars (lib.cmakeBool "Module_OTBBioVars" true)
+    ++ optionals enableGRM (lib.cmakeBool "Module_otbGRM" true)
+    ++ optionals enableLSGRM (lib.cmakeBool "Module_LSGRM" true)
+    ++ optionals enableSimpleExtraction (lib.cmakeBool "Module_SimpleExtractionTools" true)
+    ++ optionals enableTemporalGapfilling (lib.cmakeBool "Module_OTBTemporalGapFilling" true)
+    ++ optionals enableTimeSeriesUtils (lib.cmakeBool "Module_TimeSeriesUtils" true)
+    ++ optionals enableTemporalSmoothing (lib.cmakeBool "Module_TemporalSmoothing" true)
+    ++ optionals enableFFTW (lib.cmakeBool "OTB_USE_FFTW" true);
 
     propagatedBuildInputs =
       []

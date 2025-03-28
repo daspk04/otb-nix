@@ -218,7 +218,7 @@ in
       ++ optionals enablePython [
         "-DOTB_WRAP_PYTHON=ON"
       ]
-      ++ optionals doInstallCheck [
+      ++ optionals finalAttrs.doInstallCheck [
         "-DBUILD_TESTING=ON"
       ]
       ++ optionals enablePrefetch [

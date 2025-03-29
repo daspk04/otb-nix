@@ -6,3 +6,15 @@ build_dev_docker:
 
 #build_docker_arch64:
 #	nix run .\#otb-docker-aarch64.copyToDockerDaemon
+
+.PHONY: bump_patch
+bump_patch:
+	bump-my-version bump patch
+
+.PHONY: bump_minor
+bump_minor:
+	bump-my-version bump minor
+
+.PHONY: bump_major
+bump_major:
+	bump-my-version bump major

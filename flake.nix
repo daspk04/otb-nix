@@ -114,6 +114,7 @@
             bashInteractive
             pyPkgs.python
             pyPkgs.venvShellHook
+            bump-my-version
           ];
           venvDir = "./.venv";
         };

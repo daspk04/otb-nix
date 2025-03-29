@@ -16,6 +16,7 @@
   xz,
   vtk,
   zlib,
+  enableFFTW ? false,
   ...
 }: let
   versionMeta = builtins.fromJSON (builtins.readFile ./version.json);
@@ -148,13 +149,14 @@ in
       # otherwise other software built against ITK fails to configure since ITK headers
       # refer to these previously vendored libraries:
       expat
-      fftw
-      fftwFloat
       hdf5-cpp
       libjpeg
       libpng
       libtiff
       zlib
+    ] ++ lib.optionals enableFFTW [
+      fftw
+      fftwFloat
     ];
 
     meta = {

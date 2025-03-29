@@ -35,6 +35,7 @@
   shark,
   tinyxml,
   tensorflow ? null,
+  enableFFTW ? false,
   enableFeatureExtraction ? true,
   enableHyperspectral ? true,
   enableLearning ? true,
@@ -75,6 +76,7 @@
     ++ optionals enableTf [ tensorflow ]
     ++ (extraPythonPackages python3.pkgs);
   otb-shark = shark.override {enableOpenMP = enableOpenMP;};
+  otb-itk =  itk_4_13.override {enableFFTW = enableFFTW;};
 
   # remote modules based on :
   # https://forgemia.inra.fr/orfeo-toolbox
@@ -93,15 +95,15 @@
   otbNormlimSigma0 = pkgs.callPackage ./otb-s1tiling-normlimsigma0/. {};
   otbRTCGamma0 = pkgs.callPackage ./otb-s1tiling-rtcgamma0/. {};
 in
-  stdenv.mkDerivation rec {
+  stdenv.mkDerivation (finalAttrs: {
   pname = "otb";
-  version = "9.1.0";
+  version = "9.1.1";
 
   src = fetchFromGitHub {
     owner = "orfeotoolbox";
     repo = "OTB";
-    rev = "refs/tags/${version}";
-    hash = "sha256-NRyq6WTGxtPpBHXBXLCQyq60n0cJ/575xPs7QYSziYo=";
+    tag = finalAttrs.version;
+    hash = "sha256-xRUFbMSXbg60X1G29fSNqgKcGbWIBwl9gEb+T6f35MI=";
   };
 
     postPatch = lib.concatStringsSep "\n" (
@@ -166,7 +168,7 @@ in
         boost
         curl
         gdal
-        itk_4_13
+        otb-itk
         libsvm
         libgeotiff
         muparser
@@ -216,7 +218,7 @@ in
       ++ optionals enablePython [
         "-DOTB_WRAP_PYTHON=ON"
       ]
-      ++ optionals doInstallCheck [
+      ++ optionals finalAttrs.doInstallCheck [
         "-DBUILD_TESTING=ON"
       ]
       ++ optionals enablePrefetch [
@@ -263,7 +265,8 @@ in
       ]
       ++ optionals enableTemporalSmoothing [
         "-DModule_TemporalSmoothing=ON"
-      ];
+      ]
+      ++ optionals enableFFTW (lib.cmakeBool "OTB_USE_FFTW" true);
 
     propagatedBuildInputs =
       []
@@ -271,26 +274,11 @@ in
 
     doInstallCheck = false;
 
-    computed_PATH = lib.makeBinPath propagatedBuildInputs;
-
-    # Make PATH available to subprocesses
-    makeWrapperArgs = [
-      "--prefix PATH : ${computed_PATH}"
-    ];
-
-    #    pythonPath = optionals enablePython pythonInputs ++ ["$out/lib/otb/python"];
-
-    # wrap the otbcli with the environment variable
     postInstall = ''
       wrapProgram $out/bin/otbcli \
           --set OTB_INSTALL_DIR "$out" \
           --set OTB_APPLICATION_PATH "$out/lib/otb/applications"
     '';
-
-    #  # todo: this still doesn't fix importing of otb via python
-    #  postFixup = ''
-    #    wrapPythonProgramsIn "$out/lib/otb/python" "$out $pythonPath"
-    #  '';
 
     meta = {
       description = "Orfeo ToolBox";
@@ -298,4 +286,4 @@ in
       license = lib.licenses.asl20;
       maintainers = with lib.maintainers; [daspk04];
     };
-  }
+  })

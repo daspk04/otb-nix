@@ -200,28 +200,28 @@ in
     ++ optional enableStereoProcessing (lib.cmakeBool "OTB_BUILD_StereoProcessing" true)
     ++ optional enablePython (lib.cmakeBool "OTB_WRAP_PYTHON" true)
     ++ optional finalAttrs.doInstallCheck (lib.cmakeBool "BUILD_TESTING" true)
-    ++ optionals enablePrefetch (lib.cmakeBool "Module_OTBPrefetch" true)
-    ++ optionals enableOtbtf [
+    ++ optional enablePrefetch (lib.cmakeBool "Module_OTBPrefetch" true)
+    ++ optional enableOtbtf [
     (lib.cmakeBool "OTB_USE_TENSORFLOW" enableTf)
     (lib.cmakeBool "Module_OTBTensorflow" true)
     ]
-    ++ optionals enableTf [
+    ++ optional enableTf [
     "-Dtensorflow_include_dir=${tensorflow}/${python3.pkgs.python.sitePackages}/tensorflow/include"
     "-DTENSORFLOW_CC_LIB=${tensorflow}/${python3.pkgs.python.sitePackages}/tensorflow/libtensorflow_cc.so.2"
     "-DTENSORFLOW_FRAMEWORK_LIB=${tensorflow}/${python3.pkgs.python.sitePackages}/tensorflow/libtensorflow_framework.so.2"
     ]
-    ++ optionals enableMLUtils (lib.cmakeBool "Module_MLUtils" true)
-    ++ optionals enableNormlimSigma0 (lib.cmakeBool "Module_SARCalibrationExtended" true)
-    ++ optionals enablePhenology (lib.cmakeBool "Module_OTBPhenology" true)
-    ++ optionals enableRTCGamma0 (lib.cmakeBool "Module_SARCalibrationRTCGamma0" true)
-    ++ optionals enableBioVars (lib.cmakeBool "Module_OTBBioVars" true)
-    ++ optionals enableGRM (lib.cmakeBool "Module_otbGRM" true)
-    ++ optionals enableLSGRM (lib.cmakeBool "Module_LSGRM" true)
-    ++ optionals enableSimpleExtraction (lib.cmakeBool "Module_SimpleExtractionTools" true)
-    ++ optionals enableTemporalGapfilling (lib.cmakeBool "Module_OTBTemporalGapFilling" true)
-    ++ optionals enableTimeSeriesUtils (lib.cmakeBool "Module_TimeSeriesUtils" true)
-    ++ optionals enableTemporalSmoothing (lib.cmakeBool "Module_TemporalSmoothing" true)
-    ++ optionals enableFFTW (lib.cmakeBool "OTB_USE_FFTW" true);
+    ++ optional enableMLUtils (lib.cmakeBool "Module_MLUtils" true)
+    ++ optional enableNormlimSigma0 (lib.cmakeBool "Module_SARCalibrationExtended" true)
+    ++ optional enablePhenology (lib.cmakeBool "Module_OTBPhenology" true)
+    ++ optional enableRTCGamma0 (lib.cmakeBool "Module_SARCalibrationRTCGamma0" true)
+    ++ optional enableBioVars (lib.cmakeBool "Module_OTBBioVars" true)
+    ++ optional enableGRM (lib.cmakeBool "Module_otbGRM" true)
+    ++ optional enableLSGRM (lib.cmakeBool "Module_LSGRM" true)
+    ++ optional enableSimpleExtraction (lib.cmakeBool "Module_SimpleExtractionTools" true)
+    ++ optional enableTemporalGapfilling (lib.cmakeBool "Module_OTBTemporalGapFilling" true)
+    ++ optional enableTimeSeriesUtils (lib.cmakeBool "Module_TimeSeriesUtils" true)
+    ++ optional enableTemporalSmoothing (lib.cmakeBool "Module_TemporalSmoothing" true)
+    ++ optional enableFFTW (lib.cmakeBool "OTB_USE_FFTW" true);
 
     propagatedBuildInputs =
       []

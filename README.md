@@ -1,6 +1,12 @@
 # otb-nix
 This repo contains Nix Flake configuration for building [Orfeo Toolbox](https://www.orfeo-toolbox.org/) 
-from source.
+from source with remote modules.
+
+**Note for Users**:  
+The Orfeo Toolbox (OTB) nix package is now [available directly in nixpkgs](https://search.nixos.org/packages?query=otb), 
+suitable for standard installations. However, if you require advanced compilation or 
+use of additional remote modules not included by default, the configuration provided in this repo is recommended.
+
 
 ## How to use OTB nix package 
 NB: Assuming that one has already Nix with Flake enabled.
@@ -13,7 +19,7 @@ NB: Assuming that one has already Nix with Flake enabled.
   description = "A flake for Orfeo Toolbox";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/24.05";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.11";
     flake-utils.url = "github:numtide/flake-utils";
     otbpkgs.url = "github:daspk04/otb-nix";
   };
@@ -65,18 +71,20 @@ just copy the [.envrc](.envrc) file in this repo and put it inside the above fol
 - This is highly modular and allows one to customize and build `OTB` with a different version of packages 
 as per need such as `GDAL`, `ITK`, etc. as `Nix` already has a lot of [packages]([Nixpkgs](https://search.nixos.org/packages)).
 - Building with Nix is almost reproducible.
+- One can easliy combine OTB with different [remote modules](pkgs/otb) with minimal configuration options.
 - This was build out of my requirement, as the current OTB build against GDAL does not support `Geo(Parquet)` and `Blosc` 
-compressor for `Zarr` dataset. [Related Issue](https://github.com/remicres/otbtf/issues/95). So this 
-Nix pacakge solved those issues as `GDAL` on `Nixpkgs` already has those.
+compressor for `Zarr` dataset. [c.f](https://github.com/remicres/otbtf/issues/95). So this 
+Nix pacakge solves those issues as `GDAL` on `Nixpkgs` already has Geo(Parquet) and Blosc.
 - One can combine OTB with different geospatial python libraries such as `rasterio`, `geopandas` etc. 
 which as already available with [Nixpkgs](https://search.nixos.org/packages) no need to create a separate environment.
 - There isn't any conda package for OTB, although it is under plan; 
 this Nixpkgs should help people who want to use `OTB` with a different python version or packages 
 such as (gdal,rasterio, geopandas etc.), which should solve most of those use cases for OTB to be 
-imported in an custom python environment [As of today August 2024,].
-- One can also build multi-arch version of OTB package apart from `AMD64 (x86_64-linux)` i.e. 
+imported in an custom python environment.
+- One can also build a multi-arch version of OTB package apart from `AMD64 (x86_64-linux)` i.e. 
 `ARM64 (aarch64-linux)` as currently OTB has no `aarch64-linux` version.
 - One can easily build docker image as well.
+
   
 ## Advanced Configuration
 
@@ -88,7 +96,7 @@ Here is an example of how to create an `flake.nix` with all the above python pac
   description = "A flake for Orfeo Toolbox";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/24.05";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.11";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     flake-utils.url = "github:numtide/flake-utils";
     otbpkgs.url = "github:daspk04/otb-nix";
@@ -108,27 +116,30 @@ Here is an example of how to create an `flake.nix` with all the above python pac
         python = pkgs.python312;
         pyPkgs = python.pkgs;
         
-        # Build configuration pyotb 
         pyotb = pyPkgs.buildPythonPackage rec {
           pname = "pyotb";
-          version = "2.0.3.dev2";
-          format = "pyproject";
-          docheck = false;
-         
-        # Fetch it from github (one can fetch from pypi as well)
-          src = builtins.fetchGit {
-            name = pname;
-            url = "https://github.com/orfeotoolbox/pyotb.git";
-            ref = "refs/tags/${version}";
-            rev = "de801eae7e2bd80706801df4a48b23998136a5cd";
-          };
+          version = "2.1.0";
+          pyproject = "true";
 
-          nativeBuildInputs = with pyPkgs; [
+          src = pkgs.fetchFromGitHub {
+            owner = "orfeotoolbox";
+            repo = "pyotb";
+            tag = version;
+            hash = "sha256-KomIMVx4jfsTSbGtoml9ON/82sHanOkp/mp1TiUaa2E=";
+          };
+        
+          build-system = [
             setuptools
           ];
-
-          propagatedBuildInputs = with pyPkgs; [
+        
+          propagatedBuildInputs = [
             numpy
+          ];
+        
+          nativeCheckInputs = [
+            pytestCheckHook
+            pytest-cov
+            requests
           ];
         };
       in {
@@ -159,7 +170,7 @@ Here is an example of how to create an `flake.nix` with all the above python pac
 - Docker Image for OTB: 
   - Linux AMD64
   - Linux ARM64: To build OTB for `linux-aarch-64` there are 3 options:
-    - The easiest way would be to build natively with ARM64 (Still needs to be tested)
+    - The easiest way would be to build natively with ARM64
     - Compile using an emulator (Tested with [GitHub Action](https://github.com/daspk04/otb-nix/actions/runs/10191427474) and it builds fine)
     - We can also via nix cross compiler (Still needs to be Tested)
 
@@ -202,7 +213,7 @@ Example of `flake.nix` with `OTB`, `Gdal`, `Pyotb` and `Rasterio`:
   description = "A flake for Orfeo Toolbox";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/24.05";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.11";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     flake-utils.url = "github:numtide/flake-utils";
     otbpkgs.url = "github:daspk04/otb-nix";
@@ -232,23 +243,28 @@ Example of `flake.nix` with `OTB`, `Gdal`, `Pyotb` and `Rasterio`:
 
         pyotb = pyPkgs.buildPythonPackage rec {
           pname = "pyotb";
-          version = "2.0.3.dev2";
-          format = "pyproject";
-          docheck = false;
+          version = "2.1.0";
+          pyproject = "true";
 
-          src = builtins.fetchGit {
-            name = pname;
-            url = "https://github.com/orfeotoolbox/pyotb.git";
-            ref = "refs/tags/${version}";
-            rev = "de801eae7e2bd80706801df4a48b23998136a5cd";
+          src = pkgs.fetchFromGitHub {
+            owner = "orfeotoolbox";
+            repo = "pyotb";
+            tag = version;
+            hash = "sha256-KomIMVx4jfsTSbGtoml9ON/82sHanOkp/mp1TiUaa2E=";
           };
-
-          nativeBuildInputs = with pyPkgs; [
+        
+          build-system = [
             setuptools
           ];
-
-          propagatedBuildInputs = with pyPkgs; [
+        
+          propagatedBuildInputs = [
             numpy
+          ];
+        
+          nativeCheckInputs = [
+            pytestCheckHook
+            pytest-cov
+            requests
           ];
         };
       in rec {
@@ -295,7 +311,7 @@ Example of `flake.nix` with only activated remote modules such as `prefetch` and
   description = "A flake for Orfeo Toolbox";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/24.05";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.11";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     flake-utils.url = "github:numtide/flake-utils";
     otbpkgs.url = "github:daspk04/otb-nix";
@@ -320,7 +336,6 @@ Example of `flake.nix` with only activated remote modules such as `prefetch` and
         ## we only enable Prefetch and Otbtf remote modules
         otb = pkgs.callPackage ./pkgs/otb/. {
             inherit system;
-            shark = packages.shark;
             itk_4_13 = packages.itk_4_13;
             gdal = gdal;
             python3 = python; # build otb with fixed python version
@@ -333,23 +348,28 @@ Example of `flake.nix` with only activated remote modules such as `prefetch` and
 
         pyotb = pyPkgs.buildPythonPackage rec {
           pname = "pyotb";
-          version = "2.0.3.dev2";
-          format = "pyproject";
-          docheck = false;
+          version = "2.1.0";
+          pyproject = "true";
 
-          src = builtins.fetchGit {
-            name = pname;
-            url = "https://github.com/orfeotoolbox/pyotb.git";
-            ref = "refs/tags/${version}";
-            rev = "de801eae7e2bd80706801df4a48b23998136a5cd";
+          src = pkgs.fetchFromGitHub {
+            owner = "orfeotoolbox";
+            repo = "pyotb";
+            tag = version;
+            hash = "sha256-KomIMVx4jfsTSbGtoml9ON/82sHanOkp/mp1TiUaa2E=";
           };
-
-          nativeBuildInputs = with pyPkgs; [
+        
+          build-system = [
             setuptools
           ];
-
-          propagatedBuildInputs = with pyPkgs; [
+        
+          propagatedBuildInputs = [
             numpy
+          ];
+        
+          nativeCheckInputs = [
+            pytestCheckHook
+            pytest-cov
+            requests
           ];
         };
       in rec {
@@ -383,9 +403,6 @@ Example of `flake.nix` with only activated remote modules such as `prefetch` and
 }
 ```
 
-
-
-
 ## Develop
 - In case one needs to develop or experiment then
 - Clone this repo and make changes and push to your repository 
@@ -393,7 +410,6 @@ Example of `flake.nix` with only activated remote modules such as `prefetch` and
 ```markdown
 otbpkgs.url = "github:{userName}/{repoName}?ref={branchName}";
 ```
-
 
 ### How to build OTB locally
 ```markdown
@@ -417,18 +433,5 @@ Nix should be installed and flakes should be enabled.
 - How to cross compile in Nix:
   - https://thewagner.net/blog/2023/11/20/building-nix-packages-for-the-raspberry-pi-with-github-actions/
   - https://lgug2z.com/articles/building-and-privately-caching-x86-and-aarch64-nixos-systems-on-github-actions/
-
-
-
-## TODO
- - [X] Build a Nix Docker for the OTB package [Linux AMD64 and Linux ARM64]
- - [X] Build OTB with [remote modules]((https://www.orfeo-toolbox.org/CookBook/RemoteModules.html)) (OTBTF, TimeSeriesGapFilling, etc)
- - [ ] Build OTB with Tensorflow for OTBTF (OTBTF remote modules doesn't have Tensorflow)
-
-## NOTE:
-- The `OTBTF` build with `Nix` still doesn't have the `TF` applications such as `TensorflowModelServe` 
-`ImageClassifierFromDeepFeatures` `TensorflowModelTrain` `TrainClassifierFromDeepFeatures` `ImageClassifierFromDeepFeatures`
-as the `TF` building from source via Nix is yet to be done by me.
-
 
 #### **NOTE: This repo is currently experimental, please open an issue in case you encounter any.**

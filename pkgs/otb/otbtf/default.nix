@@ -7,6 +7,6 @@ fetchFromGitLab {
     owner = "orfeo-toolbox";
     repo = "otbtf";
     rev = "5.0.0";
-    hash = "sha256-XVE4b6gc9HBT49ztms0DbkKu22qrhGUK0tU+MU2jDao=";
+    hash = "sha256-6VqjuydvTmP+ES6xLQ8uSGTw/+ynYui+QkGXerYkZX8=";
     domain = "forgemia.inra.fr";
 }

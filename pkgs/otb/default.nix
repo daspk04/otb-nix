@@ -177,7 +177,7 @@ in
       ++ optional enableTimeSeriesUtils (lib.cmakeBool "Module_TimeSeriesUtils" true)
       ++ optional enableTemporalSmoothing (lib.cmakeBool "Module_TemporalSmoothing" true);
 
-    buildInputs = oldAttrs.buildInputs ++ optionals enableTemporalGapfilling [ gsl ];
+    buildInputs = (oldAttrs.buildInputs or []) ++ optionals enableTemporalGapfilling [ gsl ];
     propagatedBuildInputs = (oldAttrs.propagatedBuildInputs or []) ++ optionals enableTf [ tensorflow ];
 
   })

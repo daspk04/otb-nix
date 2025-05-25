@@ -19,7 +19,7 @@ NB: Assuming that one has already Nix with Flake enabled.
   description = "A flake for Orfeo Toolbox";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.11";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-25.05";
     flake-utils.url = "github:numtide/flake-utils";
     otbpkgs.url = "github:daspk04/otb-nix";
   };
@@ -96,7 +96,7 @@ Here is an example of how to create an `flake.nix` with all the above python pac
   description = "A flake for Orfeo Toolbox";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.11";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-25.05";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     flake-utils.url = "github:numtide/flake-utils";
     otbpkgs.url = "github:daspk04/otb-nix";
@@ -213,7 +213,7 @@ Example of `flake.nix` with `OTB`, `Gdal`, `Pyotb` and `Rasterio`:
   description = "A flake for Orfeo Toolbox";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.11";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-25.05";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     flake-utils.url = "github:numtide/flake-utils";
     otbpkgs.url = "github:daspk04/otb-nix";
@@ -305,13 +305,13 @@ Build a docker image based on `OTB`, `pyotb`, `gdal` and `rasterio` without clon
 and the `otb` section for only remote modules.
 
 
-Example of `flake.nix` with only activated remote modules such as `prefetch` and `otbtf` [note on OTBTF](#note)
+Example of `flake.nix` with only activated remote modules such as `prefetch` and `otbtf`
 ```nix
 {
   description = "A flake for Orfeo Toolbox";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.11";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-25.05";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     flake-utils.url = "github:numtide/flake-utils";
     otbpkgs.url = "github:daspk04/otb-nix";
@@ -333,16 +333,14 @@ Example of `flake.nix` with only activated remote modules such as `prefetch` and
         python = pkgs.python312;
         pyPkgs = python.pkgs;
         
-        ## we only enable Prefetch and Otbtf remote modules
-        otb = pkgs.callPackage ./pkgs/otb/. {
-            inherit system;
-            itk_4_13 = packages.itk_4_13;
-            gdal = gdal;
-            python3 = python; # build otb with fixed python version
-            enablePython = true;
-            enablePrefetch = true;
-            enableOtbtf = true;
-          };
+        ## we only enable Prefetch and Otbtf (with Tensorflow) remote modules
+        otb = otbpkgs.packages.${system}.otb.override {
+          python3 = python;
+          enablePython = true;            
+          enablePrefetch = true;
+          enableOtbtf = true;
+          enableTf = true;
+        };
 
         otbPath = with pkgs; pkgs.lib.makeLibraryPath [otb];
 
@@ -415,7 +413,7 @@ otbpkgs.url = "github:{userName}/{repoName}?ref={branchName}";
 ```markdown
 1) clone this repo
 2) nix build #.otb 
-or # nix build #.otb-all --> this will build OTB with all the remote modules
+or # nix build #.otb-dev --> this will build OTB with all the remote modules
 3) ./result/bin/otbcli_BandMathX -help
 ```
 

@@ -2,7 +2,7 @@
 #   Copyright 2018-2019 Rémi Cresson (IRSTEA)
 #   Copyright 2020-2025 Rémi Cresson (INRAE)
 #  https://forgemia.inra.fr/orfeo-toolbox/otbtf/-/blob/develop/LICENSE
-{pkgs, fetchFromGithub, ...}:
+{pkgs, fetchFromGitHub, ...}:
 fetchFromGitHub {
     owner = "remicres";
     repo = "otbtf";

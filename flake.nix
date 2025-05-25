@@ -36,7 +36,6 @@
           inherit system;
         };
         python = pkgs.python312; # we fix python version to 3.12 here for the OTB
-        pyPkgs = python.pkgs;
         nix2containerPkgs = nix2container.packages.${system};
         otb = pkgs.otb;
         tensorflow = pyPkgs.tensorflow-bin;

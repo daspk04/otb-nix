@@ -1,28 +1,30 @@
 # tensorflow package patched with missing header files, required for building otbtf tensorflow module
 {
   pkgs,
-  python3,
+  python,
+  tensorflow,
   fetchFromGitHub,
   ...
 }:
 let
+  tfVersion = tensorflow.version;
+  hashInfo = import ./source-hashes.nix tfVersion;
+
   tfSrc = fetchFromGitHub {
     owner = "tensorflow";
     repo = "tensorflow";
-    tag = "v${python3.pkgs.tensorflow-bin.version}";
-    hash = "sha256-/S//LZwWGJPoqoGalSntrPhd6NuGTl1VVmQm17bIwSs=";
+    rev = "v${tfVersion}";
+    hash = hashInfo.gitHash;
   };
 in
-pkgs.python3Packages.tensorflow-bin.overrideAttrs (oldAttrs: {
+tensorflow.overrideAttrs (oldAttrs: {
   postInstall =
-    oldAttrs.postInstall
+    oldAttrs.postInstall or ""
     + ''
-      echo "Patching TensorFlow to include missing header files..."
-      mkdir -p $out/${python3.pkgs.python.sitePackages}/tensorflow/include/tensorflow/cc/saved_model/
+      mkdir -p $out/${python.sitePackages}/tensorflow/include/tensorflow/cc/saved_model/
       cp ${tfSrc}/tensorflow/cc/saved_model/tag_constants.h \
-         $out/${python3.pkgs.python.sitePackages}/tensorflow/include/tensorflow/cc/saved_model/
+         $out/${python.sitePackages}/tensorflow/include/tensorflow/cc/saved_model/
       cp ${tfSrc}/tensorflow/cc/saved_model/signature_constants.h \
-         $out/${python3.pkgs.python.sitePackages}/tensorflow/include/tensorflow/cc/saved_model/
-      echo "TensorFlow patched successfully."
+         $out/${python.sitePackages}/tensorflow/include/tensorflow/cc/saved_model/
     '';
 })

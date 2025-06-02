@@ -19,6 +19,7 @@
 
   gsl,
   otb,
+  itk,
   python3,
   tensorflow ? null,
 
@@ -76,10 +77,18 @@ let
   otbTsSmooth = pkgs.callPackage ./otb-temporalsmoothing/. { };
   otbNormlimSigma0 = pkgs.callPackage ./otb-s1tiling-normlimsigma0/. { };
   otbRTCGamma0 = pkgs.callPackage ./otb-s1tiling-rtcgamma0/. { };
+#  otbITK = itk.overrideAttrs (oldArgs: {
+#      cmakeFlags = oldArgs.cmakeFlags or [ ] ++ [
+#      (lib.cmakeBool "Module_ITKDeprecated" true)
+#      (lib.cmakeBool "VNL_CONFIG_LEGACY_METHODS" true)
+#      (lib.cmakeBool "ITKV4_COMPATIBILITY" true)
+#      ];
+#  });
 in
 (otb.override {
   stdenv = stdenv;
   python3 = python3;
+#  itk = otbITK;
   enableFFTW = enableFFTW;
   enableFeatureExtraction = enableFeatureExtraction;
   enableHyperspectral = enableHyperspectral;
@@ -107,10 +116,14 @@ in
         ++ (optionals enableOtbtf [
           "cp --no-preserve=mode -r ${otbTF} Modules/Remote/otbtf"
           "substituteInPlace Modules/Remote/otbtf/include/otbTensorflowCopyUtils.cxx --replace-fail 'values.size()' 'static_cast<long>(values.size())'"
+          # remove otbtf independent apps
+          # https://github.com/remicres/otbtf/issues/101
+          "sed -i '/^# Tensorflow-independent APPS$/,$ d' Modules/Remote/otbtf/app/CMakeLists.txt"
         ])
         ++ (optionals enablePhenology [
-          "ln -sr ${otbPhenology} Modules/Remote/OTBPhenology"
+          "cp --no-preserve=mode -r ${otbPhenology} Modules/Remote/OTBPhenology"
           "rm Modules/Remote/phenotb.remote.cmake"
+          "substituteInPlace Modules/Remote/OTBPhenology/src/phenoFunctions.cxx --replace-fail 'vnl_math_sqr(' 'vnl_math::sqr('"
         ])
         ++ (optionals enableBioVars [
           "ln -sr ${otbBioVars} Modules/Remote/OTBBioVars"
@@ -128,8 +141,9 @@ in
           "ln -sr ${otbSeTools} Modules/Remote/OTBSimpleExtractionTools"
         ])
         ++ (optionals enableTemporalGapfilling [
-          "ln -sr ${otbTempGapfill} Modules/Remote/OTBTemporalGapFilling"
+          "cp --no-preserve=mode -r ${otbTempGapfill} Modules/Remote/OTBTemporalGapFilling"
           "rm Modules/Remote/temporal-gapfilling.remote.cmake"
+          "substituteInPlace Modules/Remote/OTBTemporalGapFilling/include/otbTemporalGapFilling.h --replace-fail 'return (this->dates != a.dates) || (this->dv != a.dv) ;' 'return (this->dv != a.dv) ;'"
         ])
         ++ (optionals enableTimeSeriesUtils [ "ln -sr ${otbTsUtils} Modules/Remote/OTBTimeSeriesUtils" ])
         ++ (optionals enableTemporalSmoothing [

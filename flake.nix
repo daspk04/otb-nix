@@ -56,6 +56,7 @@
             enablePython = true;
           };
 
+          # commented modules are broken on ITK 5.3,0
           otb-dev = pkgs.callPackage ./pkgs/otb/. {
             inherit system;
             otb = otb;
@@ -64,12 +65,12 @@
             enablePrefetch = true;
             enableOtbtf = true;
             enableMLUtils = true;
-            enableNormlimSigma0 = true;
+#            enableNormlimSigma0 = true;
             enablePhenology = true;
-            enableRTCGamma0 = true;
+#            enableRTCGamma0 = true;
             enableBioVars = true;
             enableGRM = true;
-            enableLSGRM = true;
+#            enableLSGRM = true;
             enableSimpleExtraction = true;
             enableTemporalGapfilling = true;
             enableTimeSeriesUtils = true;

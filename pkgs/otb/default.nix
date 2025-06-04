@@ -22,6 +22,7 @@
   itk,
   python3,
   tensorflow ? null,
+  onnxruntime,
 
   # otb modules
   enableFFTW ? false,
@@ -42,6 +43,7 @@
   # otb remote modules
   enablePrefetch ? false,
   enableOtbtf ? false,
+  enableOtbOnnx ? false,
   enableTf ? false,
   enableMLUtils ? false,
   enableNormlimSigma0 ? false,
@@ -65,6 +67,7 @@ let
   # https://forgemia.inra.fr/orfeo-toolbox
   # https://gitlab.orfeo-toolbox.org/orfeotoolbox/otb/-/tree/develop/Modules/Remote?ref_type=heads
   mlUtils = pkgs.callPackage ./otb-mlutils/. { };
+  otbOnnx = pkgs.callPackage ./otb-onnx/. { };
   otbPrefetch = pkgs.callPackage ./otb-prefetch/. { };
   otbTF = pkgs.callPackage ./otbtf/. { };
   otbPhenology = pkgs.callPackage ./phenotb/. { };
@@ -119,6 +122,10 @@ in
           # remove otbtf independent apps
           # https://github.com/remicres/otbtf/issues/101
           "sed -i '/^# Tensorflow-independent APPS$/,$ d' Modules/Remote/otbtf/app/CMakeLists.txt"
+        ])
+        ++ (optionals enableOtbOnnx [
+          "cp --no-preserve=mode -r ${otbOnnx} Modules/Remote/OTBONNX"
+          "substituteInPlace Modules/Remote/OTBONNX/include/otbONNXConversion.cxx --replace-fail 'out.size()' 'static_cast<long>(out.size())'"
         ])
         ++ (optionals enablePhenology [
           "cp --no-preserve=mode -r ${otbPhenology} Modules/Remote/OTBPhenology"
@@ -179,6 +186,11 @@ in
         "-DTENSORFLOW_CC_LIB=${tensorflow}/${python3.pkgs.python.sitePackages}/tensorflow/libtensorflow_cc.so.2"
         "-DTENSORFLOW_FRAMEWORK_LIB=${tensorflow}/${python3.pkgs.python.sitePackages}/tensorflow/libtensorflow_framework.so.2"
       ]
+      ++ optional enableOtbOnnx [
+        (lib.cmakeBool "Module_OTBONNX" true)
+        "-DONNX_RUNTIME_LIB=${onnxruntime}/lib/libonnxruntime.so"
+        "-DONNX_INCLUDE_DIR=${onnxruntime.dev}/include/"
+      ]
       ++ optional enableMLUtils (lib.cmakeBool "Module_MLUtils" true)
       ++ optional enableNormlimSigma0 (lib.cmakeBool "Module_SARCalibrationExtended" true)
       ++ optional enablePhenology (lib.cmakeBool "Module_OTBPhenology" true)
@@ -191,7 +203,7 @@ in
       ++ optional enableTimeSeriesUtils (lib.cmakeBool "Module_TimeSeriesUtils" true)
       ++ optional enableTemporalSmoothing (lib.cmakeBool "Module_TemporalSmoothing" true);
 
-    buildInputs = (oldAttrs.buildInputs or []) ++ optionals enableTemporalGapfilling [ gsl ];
+    buildInputs = (oldAttrs.buildInputs or []) ++ optionals enableTemporalGapfilling [ gsl ] ++ optionals enableOtbOnnx [ onnxruntime onnxruntime.dev ];
     propagatedBuildInputs = (oldAttrs.propagatedBuildInputs or []) ++ optionals enableTf [ tensorflow ];
 
   })

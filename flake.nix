@@ -49,6 +49,7 @@
             python = pyPkgs.python;
             tensorflow = tensorflow;
           };
+
           otb = pkgs.callPackage ./pkgs/otb/. {
             inherit system;
             otb = otb;
@@ -63,6 +64,7 @@
             python3 = python; # build otb with fixed python version
             enablePython = true;
             enablePrefetch = true;
+            enableOtbOnnx = true;
             enableOtbtf = true;
             enableMLUtils = true;
 #            enableNormlimSigma0 = true;
@@ -113,6 +115,7 @@
             pyPkgs.python
             pyPkgs.venvShellHook
             bump-my-version
+            onnxruntime
           ];
           venvDir = "./.venv";
         };

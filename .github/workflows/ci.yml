@@ -1,36 +1,40 @@
 name: CI
+run-name: "build .#otb-dev"
+
+permissions:
+  contents: read
+  id-token: write
 
 on:
   pull_request:
   push:
     branches: [main]
-  workflow_dispatch:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
     strategy:
       fail-fast: false
       matrix:
-        machine:
-          - host: amd64
-            platform: x86_64-linux
-          - host: arm64
-            platform: aarch64-linux
+        system:
+          - x86_64-linux
+          - aarch64-linux
+    runs-on: >-
+      ${{ (matrix.system == 'x86_64-linux' && 'ubuntu-latest')
+      || (matrix.system == 'aarch64-linux' && 'ubuntu-24.04-arm') }}
+
     steps:
       - uses: actions/checkout@v4
-      - if: matrix.machine.platform == 'aarch64-linux'
-        uses: docker/setup-qemu-action@v3
-      - uses: DeterminateSystems/nix-installer-action@main
+
+      - name: prepare /nix
+        run: sudo mkdir /mnt/nix && sudo mount -m -o bind /mnt/nix /nix
+
+      - name: install nix
+        uses: cachix/install-nix-action@v31
         with:
-          extra-conf: |
+          extra_nix_config: |
             fallback = true
             http-connections = 128
             max-substitution-jobs = 128
-            extra-platforms = aarch64-linux
-      - name: Build system
-        run: |
-          nix build --system ${{ matrix.machine.platform }} .#otb-dev
+
+      - name: nix build
+        run: nix build --keep-going -L --system ${{ matrix.system }} .#otb-dev

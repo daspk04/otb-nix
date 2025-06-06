@@ -1,5 +1,4 @@
 name: CI
-run-name: "build .#otb-dev"
 
 permissions:
   contents: read
@@ -30,11 +29,13 @@ jobs:
 
       - name: install nix
         uses: cachix/install-nix-action@v31
+        #  sandbox path needed for Onnxruntime: https://github.com/microsoft/onnxruntime/issues/10038#issuecomment-1761788231
         with:
           extra_nix_config: |
             fallback = true
             http-connections = 128
             max-substitution-jobs = 128
+            ${{ matrix.system == 'aarch64-linux' && 'extra-sandbox-paths = /sys/devices/system/cpu=/sys/devices/system/cpu /proc/cpuinfo=/proc/cpuinfo' || '' }}
 
       - name: nix build
         run: nix build --keep-going -L --system ${{ matrix.system }} .#otb-dev

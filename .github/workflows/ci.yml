@@ -34,42 +34,46 @@ jobs:
             fallback = true
             http-connections = 128
             max-substitution-jobs = 128
+            extra-sandbox-paths = /sys/devices/system/cpu=/sys/devices/system/cpu /proc/cpuinfo=/proc/cpuinfo
 
-      - name: Debug CPU info files
-        run: |
-          echo "=== Checking CPU info files ==="
-          echo "Architecture: $(uname -m)"
-          echo "Kernel: $(uname -r)"
-          
-          echo "--- /sys/devices/system/cpu/possible ---"
-          if [ -f /sys/devices/system/cpu/possible ]; then
-            echo "File exists"
-            echo "Content: $(cat /sys/devices/system/cpu/possible 2>/dev/null || echo 'Cannot read')"
-            echo "Permissions: $(ls -la /sys/devices/system/cpu/possible)"
-          else
-            echo "File does not exist"
-          fi
-          
-          echo "--- /sys/devices/system/cpu/present ---"
-          if [ -f /sys/devices/system/cpu/present ]; then
-            echo "File exists"
-            echo "Content: $(cat /sys/devices/system/cpu/present 2>/dev/null || echo 'Cannot read')"
-            echo "Permissions: $(ls -la /sys/devices/system/cpu/present)"
-          else
-            echo "File does not exist"
-          fi
-          
-          echo "--- /sys/devices/system/cpu/ directory ---"
-          echo "Directory contents:"
-          ls -la /sys/devices/system/cpu/ || echo "Directory does not exist"
-          
-          echo "--- CPU info from /proc/cpuinfo ---"
-          echo "Number of processors: $(nproc)"
-          echo "CPU info (first 10 lines):"
-          head -10 /proc/cpuinfo || echo "Cannot read /proc/cpuinfo"
-          
-          echo "--- Available CPU directories ---"
-          ls -la /sys/devices/system/cpu/cpu* 2>/dev/null | head -5 || echo "No CPU directories found"
+
+#      - name: Debug CPU info files
+#        run: |
+#          echo "=== Checking CPU info files ==="
+#          echo "Architecture: $(uname -m)"
+#          echo "Kernel: $(uname -r)"
+#
+#          echo "--- /sys/devices/system/cpu/possible ---"
+#          if [ -f /sys/devices/system/cpu/possible ]; then
+#            echo "File exists"
+#            echo "Content: $(cat /sys/devices/system/cpu/possible 2>/dev/null || echo 'Cannot read')"
+#            echo "Permissions: $(ls -la /sys/devices/system/cpu/possible)"
+#          else
+#            echo "File does not exist"
+#          fi
+#
+#          echo "--- /sys/devices/system/cpu/present ---"
+#          if [ -f /sys/devices/system/cpu/present ]; then
+#            echo "File exists"
+#            echo "Content: $(cat /sys/devices/system/cpu/present 2>/dev/null || echo 'Cannot read')"
+#            echo "Permissions: $(ls -la /sys/devices/system/cpu/present)"
+#          else
+#            echo "File does not exist"
+#          fi
+#
+#          echo "--- /sys/devices/system/cpu/ directory ---"
+#          echo "Directory contents:"
+#          ls -la /sys/devices/system/cpu/ || echo "Directory does not exist"
+#
+#          echo "--- CPU info from /proc/cpuinfo ---"
+#          echo "Number of processors: $(nproc)"
+#          echo "CPU info (first 10 lines):"
+#          head -10 /proc/cpuinfo || echo "Cannot read /proc/cpuinfo"
+#
+#          echo "--- Available CPU directories ---"
+#          ls -la /sys/devices/system/cpu/cpu* 2>/dev/null | head -5 || echo "No CPU directories found"
+
+
 
       - name: nix build
         run: nix build --keep-going -L --system ${{ matrix.system }} .#otb-dev

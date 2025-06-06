@@ -1,5 +1,4 @@
 name: CI
-run-name: "build .#otb-dev"
 
 permissions:
   contents: read
@@ -35,6 +34,18 @@ jobs:
             fallback = true
             http-connections = 128
             max-substitution-jobs = 128
+
+      - name: Set ARM64-specific environment for ONNX Runtime
+        if: matrix.system == 'aarch64-linux'
+        run: |
+          # Disable cpuinfo library issues on ARM
+          echo "ORT_DISABLE_CPU_EP_FALLBACK=1" >> $GITHUB_ENV
+          echo "OMP_NUM_THREADS=1" >> $GITHUB_ENV
+          # Force CPU execution provider
+          echo "ORT_EXECUTION_PROVIDERS=CPUExecutionProvider" >> $GITHUB_ENV
+          # Disable problematic optimizations
+          echo "ORT_DISABLE_ALL_OPTIMIZATION=1" >> $GITHUB_ENV
+
 
       - name: nix build
         run: nix build --keep-going -L --system ${{ matrix.system }} .#otb-dev
